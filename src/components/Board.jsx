@@ -6,11 +6,30 @@ import { HPChess } from '../game/logic';
 // Initialize game instance outside component to persist state across re-renders
 const game = new HPChess();
 
-export const Board = ({ onUpdate }) => {
+export const Board = ({ onUpdate, playerRole, remoteMove, onMoveMade }) => {
     const [board, setBoard] = useState(game.getBoard());
     const [selectedSquare, setSelectedSquare] = useState(null);
     const [validMoves, setValidMoves] = useState([]);
     const [turn, setTurn] = useState(game.getTurn());
+
+    // Handle Remote Move
+    useEffect(() => {
+        if (remoteMove) {
+            console.log("[Board] Executing remote move:", remoteMove);
+            game.move(remoteMove.from, remoteMove.to);
+            setBoard(game.getBoard());
+            setTurn(game.getTurn());
+            onUpdate({
+                turn: game.getTurn(),
+                captured: game.capturedPieces,
+                winner: game.getWinner(),
+                inCheck: {
+                    w: game.isKingInLethalDanger('w'),
+                    b: game.isKingInLethalDanger('b')
+                }
+            });
+        }
+    }, [remoteMove]);
 
     useEffect(() => {
         // Initial update
@@ -28,6 +47,14 @@ export const Board = ({ onUpdate }) => {
     const handleSquareClick = (square) => {
         // If game over, do nothing
         if (game.isGameOver()) return;
+
+        // Multiplayer Check: If role is assigned and not my turn, block
+        if (playerRole && playerRole !== 'spectator' && playerRole !== game.getTurn()) {
+            console.log("Not your turn!");
+            return;
+        }
+        // If spectator, block all
+        if (playerRole === 'spectator') return;
 
         const piece = game.chess.get(square);
         const isOwnPiece = piece && piece.color === game.getTurn();
@@ -48,6 +75,13 @@ export const Board = ({ onUpdate }) => {
                     b: game.isKingInLethalDanger('b')
                 }
             });
+
+            // Notify parent of move (for multiplayer)
+            if (onMoveMade) {
+                onMoveMade({ from: selectedSquare, to: square, color: game.getTurn() === 'w' ? 'b' : 'w' }); // Turn has already flipped, so send previous turn color? No, send who moved.
+                // Wait, game.getTurn() is now the NEXT player.
+                // So the mover was the OPPOSITE of current turn.
+            }
             return;
         }
 

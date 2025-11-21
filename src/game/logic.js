@@ -366,7 +366,11 @@ export class HPChess {
         // Ideally we parse the move to see if it was a rook move from corner.
         // For prototype, this is acceptable.
 
-        this.chess.load(fenParts.join(' '));
+        try {
+            this.chess.load(fenParts.join(' '));
+        } catch (e) {
+            console.warn(`[Logic] Failed to load FEN in executeForcedMove (likely Game Over): ${e.message}`);
+        }
     }
 
     findTeleportSquare(color) {

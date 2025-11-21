@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import { Board } from './components/Board';
 import { GameInfo } from './components/GameInfo';
 import './index.css'; // Ensure Tailwind/CSS is loaded
+
+// Connect to server (auto-detects host if served from same origin, otherwise needs config)
+// For dev, we might need to specify URL if ports differ, but we will serve from express.
+const socket = io({ autoConnect: false });
 
 function App() {
   const [gameState, setGameState] = useState({
@@ -11,8 +16,57 @@ function App() {
     inCheck: { w: false, b: false }
   });
 
+  const [isConnected, setIsConnected] = useState(false);
+  const [playerRole, setPlayerRole] = useState(null); // 'w', 'b', 'spectator', or null (local)
+  const [remoteMove, setRemoteMove] = useState(null);
+
+  useEffect(() => {
+    socket.on('connect', () => setIsConnected(true));
+    socket.on('disconnect', () => setIsConnected(false));
+
+    socket.on('player_role', (role) => {
+      console.log("Assigned role:", role);
+      setPlayerRole(role);
+    });
+
+    socket.on('opponent_move', (move) => {
+      console.log("Received opponent move:", move);
+      setRemoteMove(move);
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('player_role');
+      socket.off('opponent_move');
+    };
+  }, []);
+
+  const toggleMultiplayer = () => {
+    if (isConnected) {
+      socket.disconnect();
+      setPlayerRole(null);
+    } else {
+      // If running dev server on 5173 and express on 3000, we need to point to 3000.
+      // But for production/LAN, we serve from 3000.
+      // Let's try to connect to window.location.hostname:3000 if in dev.
+      const url = window.location.port === '5173'
+        ? `http://${window.location.hostname}:3000`
+        : window.location.origin;
+
+      socket.io.uri = url;
+      socket.connect();
+    }
+  };
+
   const handleUpdate = (newState) => {
     setGameState(prev => ({ ...prev, ...newState }));
+  };
+
+  const handleMoveMade = (move) => {
+    if (isConnected) {
+      socket.emit('make_move', move);
+    }
   };
 
   return (
@@ -26,7 +80,7 @@ function App() {
             <div className="space-y-2">
               <h3 className="text-white font-bold text-lg border-b border-[#769656] pb-1 inline-block">HP System</h3>
               <p className="text-sm leading-relaxed">
-                Pieces have HP equal to their standard chess value.
+                Pieces have Hit Points equal to their standard chess value.
                 <br />
                 <span className="text-[#81b64c]">Pawn: 1, Knight/Bishop: 3, Rook: 5, Queen: 9, King: 10</span>
               </p>
@@ -52,6 +106,26 @@ function App() {
                 Eliminate the enemy King by reducing its HP to 0.
               </p>
             </div>
+
+            <div className="pt-4 border-t border-[#769656]/30">
+              <button
+                onClick={toggleMultiplayer}
+                className={`w-full py-2 px-4 rounded font-bold transition-colors ${isConnected
+                  ? 'bg-red-900/50 text-red-200 hover:bg-red-900/70'
+                  : 'bg-[#769656]/20 text-[#769656] hover:bg-[#769656]/30'
+                  }`}
+              >
+                {isConnected ? 'Disconnect' : 'Play on LAN'}
+              </button>
+              {isConnected && (
+                <div className="mt-2 text-center">
+                  <span className="text-xs uppercase tracking-widest text-[#9ca3af]">You are</span>
+                  <div className={`text-xl font-bold ${playerRole === 'w' ? 'text-white' : 'text-black bg-gray-400 px-2 rounded inline-block ml-2'}`}>
+                    {playerRole === 'w' ? 'WHITE' : playerRole === 'b' ? 'BLACK' : 'SPECTATOR'}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -67,7 +141,12 @@ function App() {
 
           {/* Board - Flex grow to fill available space, keeping square aspect */}
           <div className="flex-1 min-h-0 aspect-square">
-            <Board onUpdate={handleUpdate} />
+            <Board
+              onUpdate={handleUpdate}
+              playerRole={playerRole}
+              remoteMove={remoteMove}
+              onMoveMade={handleMoveMade}
+            />
           </div>
 
           {/* Bottom Player (White) */}
