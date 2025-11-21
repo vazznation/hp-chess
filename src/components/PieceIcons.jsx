@@ -13,7 +13,7 @@ export const PieceIcons = ({ type, color, className }) => {
 
     const symbols = {
         w: {
-            k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙'
+            k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟'
         },
         b: {
             k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟'

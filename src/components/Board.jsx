@@ -70,7 +70,7 @@ export const Board = ({ onUpdate }) => {
     };
 
     return (
-        <div className="grid grid-cols-8 grid-rows-8 w-[700px] h-[700px] border-4 border-[#769656]">
+        <div className="grid grid-cols-8 grid-rows-8 w-full h-full aspect-square border-4 border-[#769656]">
             {board.map((row, rowIndex) => (
                 row.map((piece, colIndex) => {
                     const file = String.fromCharCode(97 + colIndex); // a..h

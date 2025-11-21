@@ -9,7 +9,7 @@ export const GameInfo = ({ player, captured, isCurrentTurn, inCheck }) => {
     const isActive = isCurrentTurn;
 
     return (
-        <div className={`flex items-center justify-between w-[700px] p-2 ${isActive ? 'bg-yellow-100/50' : ''} rounded transition-colors duration-200`}>
+        <div className={`flex items-center justify-between w-full p-2 ${isActive ? 'bg-yellow-100/50' : ''} rounded transition-colors duration-200`}>
             <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
                     <span className="font-bold text-gray-500">{player.toUpperCase()}</span>

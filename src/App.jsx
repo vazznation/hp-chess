@@ -16,28 +16,68 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#302E2B] flex flex-col items-center justify-center font-sans">
-      <h1 className="text-3xl text-white font-bold mb-8">HP Chess</h1>
+    <div className="h-screen w-screen bg-[#302E2B] flex items-center justify-start font-sans overflow-hidden pl-16">
+      <div className="flex flex-row w-full max-w-[1600px] h-[90vh] gap-16 items-center">
+        {/* Sidebar */}
+        <div className="w-80 flex flex-col gap-8 h-full justify-center">
+          <h1 className="text-5xl text-white font-black tracking-tight">HP Chess</h1>
 
-      <div className="flex flex-col gap-1">
-        {/* Top Player (Black) */}
-        <GameInfo
-          player="b"
-          captured={gameState.captured.b}
-          isCurrentTurn={gameState.turn === 'b'}
-          inCheck={gameState.inCheck?.b}
-        />
+          <div className="text-[#9ca3af] space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-white font-bold text-lg border-b border-[#769656] pb-1 inline-block">HP System</h3>
+              <p className="text-sm leading-relaxed">
+                Pieces have HP equal to their standard chess value.
+                <br />
+                <span className="text-[#81b64c]">Pawn: 1, Knight/Bishop: 3, Rook: 5, Queen: 9, King: 10</span>
+              </p>
+            </div>
 
-        {/* Board */}
-        <Board onUpdate={handleUpdate} />
+            <div className="space-y-2">
+              <h3 className="text-white font-bold text-lg border-b border-[#769656] pb-1 inline-block">Combat</h3>
+              <p className="text-sm leading-relaxed">
+                Attacking deals damage equal to the attacker's <strong>current HP</strong>.
+              </p>
+            </div>
 
-        {/* Bottom Player (White) */}
-        <GameInfo
-          player="w"
-          captured={gameState.captured.w}
-          isCurrentTurn={gameState.turn === 'w'}
-          inCheck={gameState.inCheck?.w}
-        />
+            <div className="space-y-2">
+              <h3 className="text-white font-bold text-lg border-b border-[#769656] pb-1 inline-block">Survival</h3>
+              <p className="text-sm leading-relaxed">
+                If a piece takes damage but survives (HP &gt; 0), it <strong>teleports</strong> to its back rank.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-white font-bold text-lg border-b border-[#769656] pb-1 inline-block">Win Condition</h3>
+              <p className="text-sm leading-relaxed">
+                Eliminate the enemy King by reducing its HP to 0.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Game Area - Constrained by height, aspect ratio preserved */}
+        <div className="flex flex-col gap-2 h-full justify-center aspect-[9/10]">
+          {/* Top Player (Black) */}
+          <GameInfo
+            player="b"
+            captured={gameState.captured.b}
+            isCurrentTurn={gameState.turn === 'b'}
+            inCheck={gameState.inCheck?.b}
+          />
+
+          {/* Board - Flex grow to fill available space, keeping square aspect */}
+          <div className="flex-1 min-h-0 aspect-square">
+            <Board onUpdate={handleUpdate} />
+          </div>
+
+          {/* Bottom Player (White) */}
+          <GameInfo
+            player="w"
+            captured={gameState.captured.w}
+            isCurrentTurn={gameState.turn === 'w'}
+            inCheck={gameState.inCheck?.w}
+          />
+        </div>
       </div>
 
       {gameState.winner && (
