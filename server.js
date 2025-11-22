@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
 });
 
 // Handle all other routes by serving index.html (SPA support)
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
