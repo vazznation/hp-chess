@@ -16,6 +16,10 @@ const io = new Server(server, {
     }
 });
 
+console.log('[Server] Starting HP Chess server...');
+console.log('[Server] __dirname:', __dirname);
+console.log('[Server] Static files path:', path.join(__dirname, 'dist'));
+
 // Serve static files from the Vite build directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -77,6 +81,7 @@ io.on('connection', (socket) => {
 
 // Handle all other routes by serving index.html (SPA support)
 app.get('*', (req, res) => {
+    console.log('[Server] Serving index.html for:', req.url);
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
