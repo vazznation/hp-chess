@@ -79,6 +79,12 @@ io.on('connection', (socket) => {
     });
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    console.log('[Server] Health check requested');
+    res.status(200).json({ status: 'ok', message: 'HP Chess server is running' });
+});
+
 // Handle all other routes by serving index.html (SPA support)
 app.get('*', (req, res) => {
     console.log('[Server] Serving index.html for:', req.url);
